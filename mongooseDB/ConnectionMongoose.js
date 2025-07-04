@@ -6,7 +6,7 @@ const connectionWithMongooseDB = (app)=>{
         mongoose.connect(process.env.DB_URL)
         .then((res)=>{
             console.log("connecation has been successfully!")
-            app.listen(PORT, ()=> console.log("server is running on PORT", PORT, ` http://localhost:${PORT}/`))
+            app.listen(PORT, ()=> console.log("server is running on PORT", PORT))
             
         })
         .catch((err)=>{
