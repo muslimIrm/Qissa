@@ -53,6 +53,17 @@ router.get("/stories", asyncHandler(async (req, res) => {
     })
 }))
 
+router.get("/stories/:id", asyncHandler(async (req, res) => {
+    
+    const story = await Stories.findById(req.params.id)
+    if(!story){
+        return res.status(404).json({message: "sory not found."})
+    }
+    res.status(200).json({
+        story
+    })
+}))
+
 
 
 // POST Router
