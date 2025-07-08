@@ -26,7 +26,7 @@ const storiesSchema = mongoose.Schema({
 
 },{ timestamps: true })
 
-const Stories = mongoose.model("Stoies", storiesSchema);
+const Stories = mongoose.model("Stories", storiesSchema);
 
 
 const validateCreateStory = (obj)=>{
