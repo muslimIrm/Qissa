@@ -1,27 +1,32 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { Users } = require("../models/Users")
+const { BlacklistedToken } = require("../models/BlacklistedTokens");
+const verifyTokenAndUser = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization
-    if (!token || !token.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "Token undifind or without Bearer" })
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Token is missing or malformed." });
     }
 
-    const tokenValue = token.split(" ")[1];
+    const token = authHeader.split(" ")[1];
+
     try {
+        const blacklisted = await BlacklistedToken.findOne({ token });
+        if (blacklisted) {
+            return res.status(401).json({ message: "This token has been revoked." });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await Users.findById(decoded.id);
 
-        const decoded = jwt.verify(tokenValue, process.env.SECRET)
-        if (decoded.isAdmin) {
-            next()
+        if (!user) {
+            return res.status(401).json({ message: "User no longer exists." });
         }
-        else {
-            return res.status(403).json({ message: "Access denied. Not admin." });
-        }
+
+        req.user = user;
+        next();
     } catch (error) {
-        return res.status(401).json({ message: "Invalid token." });
+        return res.status(401).json({ message: "Invalid or expired token." });
     }
+};
 
-
-}
-
-
-module.exports = verifyToken;
+module.exports = { verifyTokenAndUser };

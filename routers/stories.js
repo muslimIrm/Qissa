@@ -3,12 +3,22 @@ const express = require("express");
 const router = express.Router();
 const { Stories, validateCreateStory, validateUpdateStory } = require("../models/Stories")
 const asyncHandler = require("express-async-handler")
-const verifyToken = require("../middlewares/verifiyToken")
+const { verifyTokenAndUser } = require("../middlewares/verifiyToken")
 const fs = require("fs/promises");
 const upload = require("../middlewares/upload")
 const cloudinary = require("../utils/cloudinary")
 const sharp = require("sharp")
 // GET Router
+
+
+const safeUnlink = async (path) => {
+    try {
+        await fs.unlink(path);
+    } catch (err) {
+        console.warn(`Failed to delete file: ${path}`);
+    }
+};
+
 
 router.get("/stories", asyncHandler(async (req, res) => {
     let limit = parseInt(req.query.limit, 10) || 5
@@ -53,7 +63,7 @@ router.get("/stories/:id", asyncHandler(async (req, res) => {
 
 router.post("/stories",
     upload.single("image"),
-    verifyToken,
+    verifyTokenAndUser,
     asyncHandler(async (req, res) => {
 
         const { error } = validateCreateStory(req.body)
@@ -73,23 +83,29 @@ router.post("/stories",
         if (req.file) {
             const inputPath = req.file.path;
             const outputPath = `tmp/webp-${Date.now()}.webp`
+            try {
+                await sharp(inputPath)
+                    .resize({ width: 800 })
+                    .webp({ quality: 75 })
+                    .toFile(outputPath)
 
-            await sharp(inputPath)
-                .resize({ width: 800 })
-                .webp({ quality: 75 })
-                .toFile(outputPath)
 
+                const result = await cloudinary.uploader.upload(outputPath, {
+                    folder: "Qissa-images",
+                    resource_type: "image"
+                })
 
-            const result = await cloudinary.uploader.upload(outputPath, {
-                folder: "Qissa-images",
-                resource_type: "image"
-            })
+                imageUrl = result.secure_url;
+                image_public_id = result.public_id
 
-            imageUrl = result.secure_url;
-            image_public_id = result.public_id
+            } catch (error) {
+                return res.status(500).json({ message: "Failed to upload image", error: error.message });
 
-            await fs.unlink(inputPath);
-            await fs.unlink(outputPath);
+            } finally {
+                await safeUnlink(inputPath)
+                await safeUnlink(outputPath)
+            }
+
 
         }
 
@@ -113,7 +129,7 @@ router.post("/stories",
 
 router.put("/stories/:id",
     upload.single("image"),
-    verifyToken,
+    verifyTokenAndUser,
     asyncHandler(async (req, res) => {
         const { error } = validateUpdateStory(req.body)
         if (error) {
@@ -139,13 +155,20 @@ router.put("/stories/:id",
 
 
         if (file) {
+            const inputPath = file.path;
+            const outputPath = `tmp/webp-${Date.now()}.webp`;
+
             try {
-                if (oldStory.image_public_id) {
-                    await cloudinary.uploader.destroy(oldStory.image_public_id);
+                try {
+                    if (oldStory.image_public_id) {
+                        await cloudinary.uploader.destroy(oldStory.image_public_id);
+                    }
+
+                } catch (error) {
+                    return res.status(500).json({ message: "Failed to upload image", error: error.message });
+
                 }
 
-                const inputPath = file.path;
-                const outputPath = `tmp/webp-${Date.now()}.webp`;
 
                 await sharp(inputPath)
                     .resize({ width: 800 })
@@ -161,17 +184,13 @@ router.put("/stories/:id",
                 updateData.image = result.secure_url;
                 updateData.image_public_id = result.public_id;
 
-                await fs.unlink(inputPath);
-                await fs.unlink(outputPath);
             } catch (err) {
-
-                if (await fs.stat(inputPath).catch(() => false)) {
-                    await fs.unlink(inputPath);
-                }
-                if (await fs.stat(outputPath).catch(() => false)) {
-                    await fs.unlink(outputPath);
-                }
                 throw err;
+            } finally {
+                await safeUnlink(inputPath)
+                await safeUnlink(outputPath)
+   
+
             }
         }
 
@@ -189,7 +208,7 @@ router.put("/stories/:id",
 
 // Delete
 
-router.delete("/stories/:id", verifyToken, asyncHandler(async (req, res) => {
+router.delete("/stories/:id", verifyTokenAndUser, asyncHandler(async (req, res) => {
     const story = await Stories.findById(req.params.id)
 
     if (!story) {
