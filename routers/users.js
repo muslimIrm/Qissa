@@ -19,11 +19,11 @@ const cloudinary = require("../utils/cloudinary")
 */
 
 router.post("/users/register", upload.single("image"), asyncHandler(async (req, res) => {
-  //  Validate input
-  const { error } = validationRegister(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
+  // //  Validate input
+  // const { error } = validationRegister(req.body);
+  // if (error) {
+  //   return res.status(400).json({ message: error.details[0].message });
+  // }
 
   const { fullname, username, email, password } = req.body;
   const data = { fullname, username, email }
