@@ -18,12 +18,12 @@ const cloudinary = require("../utils/cloudinary")
  * @access  Public
 */
 
-router.post("/users/register", upload.single("image"), asyncHandler(async (req, res) => {
+router.post("/users/register", upload.single("account_icon"), asyncHandler(async (req, res) => {
   // //  Validate input
-  // const { error } = validationRegister(req.body);
-  // if (error) {
-  //   return res.status(400).json({ message: error.details[0].message });
-  // }
+  const { error } = validationRegister(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
 
   const { fullname, username, email, password } = req.body;
   const data = { fullname, username, email }
@@ -39,7 +39,7 @@ router.post("/users/register", upload.single("image"), asyncHandler(async (req, 
         resource_type: "image"
       })
 
-      data.acount_icon = uploadImage.secure_url;
+      data.account_icon = uploadImage.secure_url;
     } catch (error) {
       return res.status(500).json({ message: "Failed to upload image", error: error.message });
     } finally {

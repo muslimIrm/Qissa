@@ -17,7 +17,7 @@ const usersSchema = mongoose.Schema({
         required: true,
         unique: true,
     },
-    acount_icon: {
+    account_icon: {
         type: String,
         defult: "defultImage"
     },
