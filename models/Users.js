@@ -48,7 +48,8 @@ const validationRegister = (obj) => {
         fullname: Joi.string().trim().min(5).max(75).required(),
         username: Joi.string().trim().min(5).max(75).required(),
         email: Joi.string().email().required(),
-        password: Joi.string().min(6).required()
+        password: Joi.string().min(6).required(),
+        acount_icon: Joi.any()
     });
 
     return schema.validate(obj, { abortEarly: false }); 
