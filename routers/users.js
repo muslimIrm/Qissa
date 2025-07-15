@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyToken = require("../middlewares/verifiyToken")
+const verifyTokenAndUser = require("../middlewares/verifyToken")
 const asyncHandler = require("express-async-handler")
 const { Users, validationRegister, validationLogin } = require("../models/Users")
 const bcrypt = require("bcryptjs");
@@ -123,8 +123,8 @@ router.post("/users/login", asyncHandler(async (req, res) => {
 */
 
 
-router.post("/users/logout", verifyToken, asyncHandler(async (req, res)=>{
-  const token = req.toekn;
+router.post("/users/logout", verifyTokenAndUser, asyncHandler(async (req, res)=>{
+  const token = req.token;
 
   const invalidToken = await new BlacklistedToken({
     token

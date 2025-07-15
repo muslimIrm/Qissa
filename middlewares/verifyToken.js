@@ -30,4 +30,4 @@ const verifyTokenAndUser = async (req, res, next) => {
     }
 };
 
-module.exports = { verifyTokenAndUser };
+module.exports =  verifyTokenAndUser ;

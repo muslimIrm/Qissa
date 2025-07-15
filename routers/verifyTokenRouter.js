@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyToken = require("../middlewares/verifiyToken")
+const verifyToken = require("../middlewares/verifyToken")
 const asyncHandler = require("express-async-handler")
 
 
