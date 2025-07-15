@@ -46,7 +46,7 @@ const Users = mongoose.model("Users", usersSchema);
 const validationRegister = (obj) => {
     const schema = Joi.object({
         fullname: Joi.string().trim().min(5).max(75).required(),
-        username: Joi.string().trim().min(5).max(75).required(),
+        username: Joi.string().trim().min(3).max(16).required(),
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
     });

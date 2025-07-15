@@ -20,13 +20,29 @@ const cloudinary = require("../utils/cloudinary")
 
 router.post("/users/register", upload.single("account_icon"), asyncHandler(async (req, res) => {
   // //  Validate input
+
+  console.log("🔥 Body:", req.body);
+  console.log("🔥 File:", req.file);
   const { error } = validationRegister(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
 
+
   const { fullname, username, email, password } = req.body;
   const data = { fullname, username, email }
+  const existingUser = await Users.findOne({
+    $or: [{ username }, { email }]
+  });
+
+  if (existingUser) {
+    if (existingUser.username === username) {
+      return res.status(400).json({ message: "Username is already taken" });
+    }
+    if (existingUser.email === email) {
+      return res.status(400).json({ message: "Email is already registered" });
+    }
+  }
   //  Hash password
   data.password = await bcrypt.hash(password, 10);
   console.log("file:", req.file)
