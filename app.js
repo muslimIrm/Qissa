@@ -7,6 +7,7 @@ const connectionWithMongooseDB = require("./mongooseDB/ConnectionMongoose")
 const TodoyVerse = require("./routers/verse")
 const stories = require("./routers/stories")
 const users = require("./routers/users")
+const verifiyTokenRouter = require("./routers/verifiyTokenRouter")
 // Connecation with mongooseDB database
 connectionWithMongooseDB(app)
 
@@ -22,4 +23,4 @@ app.use("/uploads", express.static("uploads"))
 app.use("/api", TodoyVerse)
 app.use("/api", stories)
 app.use("/api", users)
-
+app.use("/api", verifiyTokenRouter)

@@ -6,7 +6,8 @@ const { Users, validationRegister, validationLogin } = require("../models/Users"
 const bcrypt = require("bcryptjs");
 const fs = require("fs/promises")
 const upload = require("../middlewares/upload")
-const cloudinary = require("../utils/cloudinary")
+const cloudinary = require("../utils/cloudinary");
+const { BlacklistedToken } = require("../models/BlacklistedTokens");
 
 
 
@@ -85,7 +86,7 @@ router.post("/users/register", upload.single("account_icon"), asyncHandler(async
 }));
 
 /*
- * @route   POST /users/register
+ * @route   POST /users/login
  * @desc    Login a user
  * @access  Public
 */
@@ -114,6 +115,29 @@ router.post("/users/login", asyncHandler(async (req, res) => {
     user: userWithoutPassword
   })
 }))
+
+/*
+ * @route   POST /users/logout
+ * @desc    Log out a user
+ * @access  pravite
+*/
+
+
+router.post("/users/logout", verifyToken, asyncHandler(async (req, res)=>{
+  const token = req.toekn;
+
+  const invalidToken = await new BlacklistedToken({
+    token
+  })
+
+  await invalidToken.save()
+  if(!invalidToken){
+    return res.status(400).json({message: "somethigns went wrong."})
+  }
+
+  res.status(200).json({message: "logout successufully!"})
+}))
+
 
 
 
