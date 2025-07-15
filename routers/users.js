@@ -126,7 +126,7 @@ router.post("/users/login", asyncHandler(async (req, res) => {
 router.post("/users/logout", verifyTokenAndUser, asyncHandler(async (req, res)=>{
   const token = req.token;
 
-  const invalidToken = await new BlacklistedToken({
+  const invalidToken = new BlacklistedToken({
     token
   })
 
